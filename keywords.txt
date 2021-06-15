@@ -1,0 +1,11 @@
+FieldOps	KEYWORD1
+compareString	KEYWORD2
+compareInt	KEYWORD2
+compareFloat	KEYWORD2
+extractField	KEYWORD2
+checkFieldLength	KEYWORD2
+checkNumber	KEYWORD2
+countCharacterInstances	KEYWORD2
+checkValidCharacters	KEYWORD2
+changeCharactersTo	KEYWORD2
+countFields	KEYWORD2
