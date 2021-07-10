@@ -3,13 +3,14 @@
   FieldOps demo by Bryce Cherry
 
   The following command will not generate any errors:
-  A B C D E F
+  A B C D E F G
   A: Hello (case sensitive)
   B: case (case insensitive)
   C: 100-105 (integer)
   D: 2000.5-3025.4 (float)
   E: -225 to -158 (integer)
   F: -5302.1 to -1000.2 (float)
+  G: 0x12443012 to 0x12501244 (hexadecimal)
 
 */
 
@@ -68,8 +69,8 @@ void loop() {
     }
     else {
       ByteCount = 0;
-      word mask = 1;
-      word Errors = 0;
+      byte mask = 1;
+      byte Errors = 0;
       if (FieldOps.compareString(CommandSize, FieldLength, Command, "Hello", 0, 0x20, 0x0D, true) == false) {
         Errors |= mask;
       }
@@ -91,6 +92,10 @@ void loop() {
       }
       mask <<= 1;
       if (FieldOps.compareFloat(CommandSize, FieldLength, Command, -5302.1, -1000.2, 5, 0x20, 0x0D) == false) {
+        Errors |= mask;
+      }
+      mask <<= 1;
+      if (FieldOps.compareHex(CommandSize, FieldLength, Command, 0x12443012, 0x12501244, 6, 0x20, 0x0D) == false) {
         Errors |= mask;
       }
       Serial.print(F("Field 0 is "));
@@ -132,15 +137,41 @@ void loop() {
       else {
         Serial.println(F("not a valid number"));
       }
-      word FieldsCounted = FieldOps.countFields(CommandSize, Command, 0x20, 0x0D);
+      Serial.print(F("Field 6 is "));
+      FieldOps.extractField(CommandSize, FieldLength, Command, 6, 0x20, 0x0D, ExtractedField);
+      bool FieldIsHexadecimal = FieldOps.checkHex(ExtractedField, FieldLength);
+      if (FieldIsHexadecimal == true) {
+        Serial.println(F("a valid hexadecimal number"));
+      }
+      else if (FieldOps.checkNumber(ExtractedField, FieldLength, false) == true) {
+        Serial.println(F("a valid integer"));
+      }
+      else if (FieldOps.checkNumber(ExtractedField, FieldLength, true) == true) {
+        Serial.println(F("a valid float"));
+      }
+      else {
+        Serial.println(F("not a valid number"));
+      }
+      Serial.print(F("Extracted Field 2 value is "));
+      Serial.println(FieldOps.extractInt(CommandSize, FieldLength, Command, 2, 0x20, 0x0D));
+      Serial.print(F("Extracted Field 3 value is "));
+      Serial.println(FieldOps.extractFloat(CommandSize, FieldLength, Command, 3, 0x20, 0x0D));
+      Serial.print(F("Extracted Field 6 value is "));
+      if (FieldIsHexadecimal == true) {
+        Serial.print(F("0x"));
+        Serial.println((FieldOps.extractHex(CommandSize, FieldLength, Command, 6, 0x20, 0x0D)), HEX);
+      }
+      else {
+        Serial.println((FieldOps.extractInt(CommandSize, FieldLength, Command, 6, 0x20, 0x0D)), DEC);
+      }
       Serial.print(F("Fields counted is "));
-      Serial.println(FieldsCounted);
+      Serial.println(FieldOps.countFields(CommandSize, Command, 0x20, 0x0D));
       if (Errors == 0) {
         Serial.println(F("Serial string is correct"));
       }
       else {
         mask = 1;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 8; i++) {
           if ((Errors & mask) != 0) {
             Serial.print(F("Field "));
             Serial.print(i);

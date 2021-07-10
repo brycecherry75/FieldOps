@@ -86,6 +86,25 @@ bool FieldOpsClass::checkNumber(const char *StringToCompare, uint16_t MaximumFie
   return ValidNumber;
 }
 
+bool FieldOpsClass::checkHex(const char *StringToCompare, uint16_t MaximumFieldLength) {
+  bool ValidNumber = true;
+  if (MaximumFieldLength > 3 && StringToCompare[0] == '0' && (StringToCompare[1] == 'x' || StringToCompare[1] == 'X')) {
+    for (uint16_t i = 2; i < MaximumFieldLength; i++) {
+      if (StringToCompare[i] == 0x00) { // terminator detected
+        break;
+      }
+      else if ((StringToCompare[i] < '0' || StringToCompare[i] > '9')) {
+        ValidNumber = false;
+        break;
+      }
+    }
+  }
+  else {
+    ValidNumber = false;
+  }
+  return ValidNumber;
+}
+
 bool FieldOpsClass::compareString(uint16_t InputBufferLength, uint16_t MaximumFieldLength, const char *InputBuffer, const String StringValueToCompare, uint16_t FieldNumber, uint8_t SeparatorType, uint8_t TerminatorType, bool CaseSensitive) {
   char ComparisonBuffer[MaximumFieldLength];
   extractField(InputBufferLength, MaximumFieldLength, InputBuffer, FieldNumber, SeparatorType, TerminatorType, ComparisonBuffer);
@@ -140,6 +159,41 @@ bool FieldOpsClass::compareFloat(uint16_t InputBufferLength, uint16_t MaximumFie
   else {
     return false;
   }
+}
+
+bool FieldOpsClass::compareHex(uint16_t InputBufferLength, uint16_t MaximumFieldLength, const char *InputBuffer, uint32_t MinimumValue, uint32_t MaximumValue, uint16_t FieldNumber, uint8_t SeparatorType, uint8_t TerminatorType) {
+  char ComparisonBuffer[MaximumFieldLength];
+  extractField(InputBufferLength, MaximumFieldLength, InputBuffer, FieldNumber, SeparatorType, TerminatorType, ComparisonBuffer);
+  if (checkHex(ComparisonBuffer, MaximumFieldLength) == true) {
+    uint32_t ValueToCompare = strtoul(ComparisonBuffer, NULL, 16);
+    if (MinimumValue <= MaximumValue && ValueToCompare >= MinimumValue && ValueToCompare <= MaximumValue) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+  else {
+    return false;
+  }
+}
+
+int32_t FieldOpsClass::extractInt(uint16_t InputBufferLength, uint16_t MaximumFieldLength, const char *InputBuffer, uint16_t FieldNumber, uint8_t SeparatorType, uint8_t TerminatorType) {
+  char IntToExtract[MaximumFieldLength];
+  extractField(InputBufferLength, MaximumFieldLength, InputBuffer, FieldNumber, SeparatorType, TerminatorType, IntToExtract);
+  return atol(IntToExtract);
+}
+
+float FieldOpsClass::extractFloat(uint16_t InputBufferLength, uint16_t MaximumFieldLength, const char *InputBuffer, uint16_t FieldNumber, uint8_t SeparatorType, uint8_t TerminatorType) {
+  char FloatToExtract[MaximumFieldLength];
+  extractField(InputBufferLength, MaximumFieldLength, InputBuffer, FieldNumber, SeparatorType, TerminatorType, FloatToExtract);
+  return atof(FloatToExtract);
+}
+
+uint32_t FieldOpsClass::extractHex(uint16_t InputBufferLength, uint16_t MaximumFieldLength, const char *InputBuffer, uint16_t FieldNumber, uint8_t SeparatorType, uint8_t TerminatorType) {
+  char HexToExtract[MaximumFieldLength];
+  extractField(InputBufferLength, MaximumFieldLength, InputBuffer, FieldNumber, SeparatorType, TerminatorType, HexToExtract);
+  return strtoul(HexToExtract, NULL, 16);
 }
 
 uint16_t FieldOpsClass::countCharacterInstances(uint16_t BufferLength, const char *InputBuffer, uint8_t CharacterToCount, bool CaseSensitive) {
